@@ -1,0 +1,6 @@
+station_id,official_mile,baseline_distance_km,side_count,has_water,has_restrooms,has_first_aid,position_uncertainty_m,source_url,longitude,latitude
+AID_1,1,1.609344,2,True,True,True,200.0,https://www.atlantatrackclub.org/northsidehospital-peachtree-road-race-volunteer-information-confidential,-84.37614474355502,33.840820979600764
+AID_2,2,3.218688,2,True,True,True,200.0,https://www.atlantatrackclub.org/northsidehospital-peachtree-road-race-volunteer-information-confidential,-84.38668668232194,33.83028160932399
+AID_3,3,4.828032,2,True,True,True,200.0,https://www.atlantatrackclub.org/northsidehospital-peachtree-road-race-volunteer-information-confidential,-84.39010894863377,33.816424951989354
+AID_4,4,6.437376,2,True,True,True,200.0,https://www.atlantatrackclub.org/northsidehospital-peachtree-road-race-volunteer-information-confidential,-84.3929626824878,33.80290364278897
+AID_5,5,8.04672,2,True,True,True,200.0,https://www.atlantatrackclub.org/northsidehospital-peachtree-road-race-volunteer-information-confidential,-84.38525566304149,33.79081818534832
