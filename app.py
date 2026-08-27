@@ -35,7 +35,9 @@ st.set_page_config(
 
 
 # Center the RaceGuard logo.
-logo_left, logo_center, logo_right = st.columns([2, 1, 2])
+logo_left, logo_center, logo_right = st.columns(
+    [2.3, 0.7, 2.3]
+)
 
 with logo_center:
     st.image(
@@ -44,19 +46,33 @@ with logo_center:
     )
 
 
-# Larger, bolder tagline.
 st.markdown(
-    """
-    <h2 style="
-        text-align: center;
-        font-size: 1.65rem;
-        font-weight: 750;
-        margin-top: -0.5rem;
-        margin-bottom: 1.5rem;
-    ">
-        Smarter relief stations for hotter race courses.
-    </h2>
-    """,
+    (
+        '<div style="max-width:850px; margin:-0.5rem auto 1.75rem auto; '
+        'text-align:center;">'
+
+        '<h1 style="font-size:2rem; font-weight:750; '
+        'margin-bottom:0.65rem;">'
+        'Put race relief where runners face the most heat.'
+        '</h1>'
+
+        '<p style="color:#5f6670; font-size:1.08rem; '
+        'line-height:1.6; margin:0 auto 0.9rem auto;">'
+        "RaceGuard combines FortyGuard's hyperlocal temperature "
+        'data with constrained optimization to reposition existing '
+        'relief stations and reduce the worst uninterrupted '
+        'relative heat exposure along a race course.'
+        '</p>'
+
+        '<span style="display:inline-block; background:#fff3ed; '
+        'color:#c44f21; border:1px solid #f3c1aa; '
+        'border-radius:999px; padding:0.3rem 0.8rem; '
+        'font-size:0.86rem; font-weight:650;">'
+        'Powered by the FortyGuard Temperature API'
+        '</span>'
+
+        '</div>'
+    ),
     unsafe_allow_html=True,
 )
 
@@ -77,20 +93,30 @@ with mode_center:
 analysis_result = None
 
 if mode == "Explore an example":
-    st.header("Explore an example race")
+    st.divider()
 
-    st.info(
-        "Use a prepared race to explore RaceGuard "
-        "without making a paid FortyGuard request."
+    example_intro, example_picker = st.columns(
+        [1.4, 1],
+        gap="large",
+        vertical_alignment="bottom",
     )
 
-    selected_example = st.selectbox(
-        "Choose an example race",
-        options=[
-            "AJC Peachtree Road Race",
-            "BOLDERBoulder",
-        ],
-    )
+    with example_intro:
+        st.header("See RaceGuard in action")
+
+        st.write(
+            "Explore a prepared race using validated FortyGuard "
+            "temperature data—no API key or credits required."
+        )
+
+    with example_picker:
+        selected_example = st.selectbox(
+            "Choose a race",
+            options=[
+                "AJC Peachtree Road Race",
+                "BOLDERBoulder",
+            ],
+        )
 
     if selected_example == "AJC Peachtree Road Race":
         example_course_path = Path(
@@ -315,12 +341,20 @@ if mode == "Explore an example":
             )
 
 else:
-    st.header("Analyze your race")
+    st.divider()
+
+    st.header("Optimize your race plan")
+
+    st.write(
+        "Upload an existing course and relief-station plan. "
+        "RaceGuard will map the route's temperature variation "
+        "and recommend feasible station relocations."
+    )
 
     st.info(
-        "Upload your course and existing relief stations. "
-        "RaceGuard will validate them before requesting "
-        "temperature data."
+        "RaceGuard validates every input and shows the exact "
+        "request area before any FortyGuard API credits are used.",
+        icon="🛡️",
     )
 
     course = None
@@ -370,9 +404,9 @@ else:
         if course_file is not None:
             file_size_kb = course_file.size / 1024
 
-            st.success(
-                f"Received {course_file.name} "
-                f"({file_size_kb:.1f} KB)"
+            st.caption(
+                f"✓ Course loaded · {course_file.name} · "
+                f"{file_size_kb:.1f} KB"
             )
 
             try:
@@ -464,9 +498,9 @@ else:
                         )
                     )
 
-                    st.success(
-                        f"Loaded {len(positioned_stations)} stations "
-                        f"using {location_method}."
+                    st.caption(
+                        f"✓ {len(positioned_stations)} stations loaded · "
+                        f"Positioned using {location_method}"
                     )
 
                     offsets = positioned_stations[
@@ -749,7 +783,7 @@ else:
                     )
 
                     st.subheader(
-                        "4. Temperature request preview"
+                        "4. Review Temperature Request"
                     )
 
                     st.metric(
@@ -1030,8 +1064,9 @@ else:
         st.subheader("Input preview")
 
         if course is None:
-            st.info(
-                "Upload a valid course to display its preview."
+            st.caption(
+                "Your course map and station positions will appear "
+                "here after a valid route is uploaded."
             )
 
         else:
@@ -1135,7 +1170,8 @@ if analysis_result is not None:
                             )
 
                             st.success(
-                                analysis_result["headline"]
+                                analysis_result["headline"],
+                                icon="✅",
                             )
 
                             st.caption(
@@ -1170,7 +1206,7 @@ if analysis_result is not None:
 
                             with exposure_metric:
                                 st.metric(
-                                    "Worst exposure reduction",
+                                    "Worst heat-burden reduction",
                                     (
                                         f"{summary['worst_exposure_reduction_percent']:.1f}%"
                                     ),
@@ -1178,7 +1214,7 @@ if analysis_result is not None:
 
                             with segment_metric:
                                 st.metric(
-                                    "Worst-exposure segment",
+                                    "Worst segment length",
                                     f"{optimized_segment_distance_km:.2f} km",
                                     delta=(
                                         f"{segment_distance_change_km:+.2f} km"
@@ -1188,7 +1224,7 @@ if analysis_result is not None:
 
                             with movement_metric:
                                 st.metric(
-                                    "Largest station move",
+                                    "Largest station relocation",
                                     (
                                         f"{summary['maximum_station_movement_m']:.0f} m"
                                     ),
@@ -1196,7 +1232,7 @@ if analysis_result is not None:
 
                             with total_movement_metric:
                                 st.metric(
-                                    "Combined station movement",
+                                    "Total station relocation",
                                     (
                                         f"{summary['total_station_movement_m'] / 1000:.2f} km"
                                     ),
