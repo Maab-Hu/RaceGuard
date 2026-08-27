@@ -1,0 +1,81 @@
+{
+  "activity_id": "16fac49b-2c2b-40ff-bae5-eaea3aab5c32",
+  "result": {
+    "metadata": {
+      "timezone": "GMT-6",
+      "timezone_offset_hours": -6,
+      "time_range": {
+        "start": "2026-07-04T09:00:00-06:00",
+        "end": "2026-07-04T09:00:00-06:00",
+        "interval": "1h",
+        "count": 1
+      },
+      "timestamps": [
+        "2026-07-04T09:00:00-06:00"
+      ]
+    },
+    "locations": [
+      {
+        "lat": 33.815333099737686,
+        "lon": -84.39141520661789,
+        "elevation": 263.0,
+        "temperature": 27.0703,
+        "parameters": {
+          "heat_index_celsius": [
+            27.8
+          ],
+          "apparent_temperature_celsius": [
+            34.8
+          ],
+          "relative_humidity_percent": [
+            55.2
+          ],
+          "precipitation_mm": [
+            0.0
+          ],
+          "cloud_cover_octas": [
+            89.0
+          ],
+          "wet_bulb_temperature_celsius": [
+            23.9
+          ],
+          "air_quality:idx": [
+            73.3
+          ],
+          "air_quality_pm2p5:idx": [
+            73.3
+          ],
+          "air_quality_pm10:idx": [
+            21.9
+          ],
+          "air_quality_no2:idx": [
+            1.4
+          ],
+          "aqi_us_co": [
+            2.7
+          ],
+          "air_quality_o3:idx": [
+            23.5
+          ],
+          "air_quality_so2:idx": [
+            0.9
+          ],
+          "methane_ppb": [
+            2004.4
+          ],
+          "co2_ppm": [
+            463.0
+          ]
+        },
+        "solar_irradiance": {
+          "clear_sky": {
+            "ghi": 736.24,
+            "dni": 738.79,
+            "dhi": 146.49
+          },
+          "description": "The above values provide insights into the solar energy available at the specific location at 2026-07-04 09:00. GHI represents the total solar energy, DNI focuses on direct sunlight, and DHI accounts for scattered and diffuse radiation."
+        }
+      }
+    ]
+  }
+}
