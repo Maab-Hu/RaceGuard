@@ -1,7 +1,6 @@
 import race_analysis
 import temperature_profile
-
-
+from pathlib import Path
 from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 from heatmap_request import (
@@ -75,6 +74,7 @@ with mode_center:
         horizontal=True,
     )
 
+analysis_result = None
 
 if mode == "Explore an example":
     st.header("Explore an example race")
@@ -83,6 +83,236 @@ if mode == "Explore an example":
         "Use a prepared race to explore RaceGuard "
         "without making a paid FortyGuard request."
     )
+
+    selected_example = st.selectbox(
+        "Choose an example race",
+        options=[
+            "AJC Peachtree Road Race",
+            "BOLDERBoulder",
+        ],
+    )
+
+    if selected_example == "AJC Peachtree Road Race":
+        example_course_path = Path(
+            "data/processed/peachtree_course.geojson"
+        )
+
+        example_station_path = Path(
+            "data/processed/peachtree_stations.csv"
+        )
+
+        example_heatmap_path = Path(
+            "data/raw/fortyguard/"
+            "peachtree_heatmap_2026_07_04_0900_g100.json"
+        )
+
+        example_min_gap_m = 1000
+        example_max_gap_m = 2000
+        example_max_movement_m = 500
+
+        example_description = (
+            "Atlanta, Georgia · 10 km · "
+            "4 July 2026 at 09:00"
+        )
+
+    else:
+        example_course_path = Path(
+            "data/processed/bolder_boulder_course.geojson"
+        )
+
+        example_station_path = None
+
+        example_heatmap_path = Path(
+            "data/raw/fortyguard/"
+            "bolder_boulder_heatmap_2026-05-25_0800_g100.json"
+        )
+
+        example_min_gap_m = 1000
+        example_max_gap_m = None
+        example_max_movement_m = 500
+
+        example_description = (
+            "Boulder, Colorado · 10 km · "
+            "25 May 2026 at 08:00"
+        )
+
+    example_files = [
+        example_course_path,
+        example_heatmap_path,
+    ]
+
+    if example_station_path is not None:
+        example_files.append(
+            example_station_path
+        )
+
+    missing_files = [
+        path
+        for path in example_files
+        if not path.is_file()
+    ]
+
+    if missing_files:
+        st.error(
+            "Example files are missing: "
+            + ", ".join(
+                str(path)
+                for path in missing_files
+            )
+        )
+
+    else:
+        try:
+            with st.spinner(
+                f"Loading {selected_example}..."
+            ):
+                example_course = load_course_upload(
+                    file_name=example_course_path.name,
+                    file_bytes=example_course_path.read_bytes(),
+                )
+
+                example_route_profile = (
+                    temperature_profile
+                    .build_route_temperature_profile(
+                        example_course,
+                        example_heatmap_path,
+                        spacing_m=100,
+                        max_nearest_distance_m=50,
+                    )
+                )
+
+                if (
+                    selected_example
+                    == "AJC Peachtree Road Race"
+                ):
+                    (
+                        example_stations,
+                        example_location_method,
+                    ) = load_station_csv(
+                        example_station_path.read_bytes()
+                    )
+
+                    example_positioned_stations = (
+                        locate_stations_on_course(
+                            course=example_course,
+                            stations=example_stations,
+                            location_method=(
+                                example_location_method
+                            ),
+                        )
+                    )
+
+                    baseline_station_positions = (
+                        example_positioned_stations[
+                            "baseline_distance_m"
+                        ].to_numpy()
+                    )
+
+                    baseline_station_data = (
+                        example_positioned_stations
+                    )
+
+                else:
+                    metres_per_mile = 1609.344
+
+                    baseline_station_positions = [
+                        2 * metres_per_mile,
+                        3 * metres_per_mile,
+                        4 * metres_per_mile,
+                        5 * metres_per_mile,
+                    ]
+
+                    baseline_station_data = None
+
+                    source_length_m = float(
+                        example_route_profile[
+                            "distance_m"
+                        ].iloc[-1]
+                    )
+
+                    if source_length_m <= 0:
+                        raise ValueError(
+                            "The BOLDERBoulder course "
+                            "length is invalid."
+                        )
+
+                    distance_scale = (
+                        10_000.0 / source_length_m
+                    )
+
+                    example_route_profile[
+                        "source_distance_m"
+                    ] = example_route_profile[
+                        "distance_m"
+                    ]
+
+                    example_route_profile[
+                        "distance_m"
+                    ] = (
+                        example_route_profile[
+                            "source_distance_m"
+                        ]
+                        * distance_scale
+                    )
+
+                    example_route_profile[
+                        "distance_km"
+                    ] = (
+                        example_route_profile[
+                            "distance_m"
+                        ]
+                        / 1000
+                    )
+
+                example_burden_profile = (
+                    temperature_profile
+                    .add_relative_heat_burden(
+                        example_route_profile
+                    )
+                )
+
+                analysis_result = (
+                    race_analysis.analyze_station_plan(
+                        race_name=selected_example,
+                        profile=example_burden_profile,
+                        baseline_station_positions=(
+                            baseline_station_positions
+                        ),
+                        baseline_station_data=(
+                            baseline_station_data
+                        ),
+                        min_gap_m=example_min_gap_m,
+                        max_gap_m=example_max_gap_m,
+                        max_movement_m=(
+                            example_max_movement_m
+                        ),
+                    )
+                )
+
+            st.markdown(
+                f"**{selected_example}** · "
+                f"{example_description}"
+            )
+
+            if selected_example == "BOLDERBoulder":
+                st.caption(
+                    "Prepared validation setup with baseline "
+                    "stations at miles 2, 3, 4, and 5."
+                )
+
+            st.caption(
+                "Prepared FortyGuard case study · "
+                "100 m temperature resolution · "
+                "No API credits required."
+            )
+
+        except Exception as error:
+            analysis_result = None
+
+            st.error(
+                "RaceGuard could not load the example: "
+                f"{error}"
+            )
 
 else:
     st.header("Analyze your race")
@@ -119,9 +349,7 @@ else:
     heatmap_aoi = None
     aoi_area_km2 = None
     heatmap_response = None
-    heatmap_cache_path = None
-    analysis_result = None
-
+    heatmap_cache_path = None   
     input_column, preview_column = st.columns(
         [0.42, 0.58],
         gap="large",
@@ -783,7 +1011,123 @@ else:
                                     f"the station layout: {error}"
                                 )
 
-                        if analysis_result is not None:
+                except Exception as error:
+                    course_aoi = None
+                    heatmap_aoi = None
+                    aoi_area_km2 = None
+                    settings_valid = False
+
+                    st.error(
+                        "RaceGuard could not prepare the "
+                        f"temperature request area: {error}"
+                    )
+
+                st.caption(
+                    "No paid FortyGuard request has been made."
+                )
+
+    with preview_column:
+        st.subheader("Input preview")
+
+        if course is None:
+            st.info(
+                "Upload a valid course to display its preview."
+            )
+
+        else:
+            course_tab, station_tab = st.tabs(
+                [
+                    "Course map",
+                    "Station data",
+                ]
+            )
+
+            with course_tab:
+                course_map = build_course_preview_map(
+                    course,
+                    positioned_stations,
+                    aoi = course_aoi
+                )
+
+                st_folium(
+                    course_map,
+                    use_container_width=True,
+                    height=520,
+                )
+
+            with station_tab:
+                if positioned_stations is not None:
+                    display_stations = (
+                        positioned_stations.copy()
+                    )
+
+                    display_stations[
+                        "baseline_distance_km"
+                    ] = display_stations[
+                        "baseline_distance_km"
+                    ].round(2)
+
+                    display_stations[
+                        "latitude"
+                    ] = display_stations[
+                        "latitude"
+                    ].round(6)
+
+                    display_stations[
+                        "longitude"
+                    ] = display_stations[
+                        "longitude"
+                    ].round(6)
+
+                    display_stations[
+                        "source_coordinate_offset_m"
+                    ] = display_stations[
+                        "source_coordinate_offset_m"
+                    ].round(1)
+
+                    summary_columns = [
+                        "station_id",
+                        "baseline_distance_km",
+                        "latitude",
+                        "longitude",
+                        "source_coordinate_offset_m",
+                    ]
+
+                    optional_columns = [
+                        column
+                        for column in [
+                            "has_water",
+                            "has_restrooms",
+                            "has_first_aid",
+                        ]
+                        if column
+                        in display_stations.columns
+                    ]
+
+                    st.dataframe(
+                        display_stations[
+                            summary_columns
+                            + optional_columns
+                        ],
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+
+                    with st.expander(
+                        "View technical station data"
+                    ):
+                        st.dataframe(
+                            positioned_stations,
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+
+                else:
+                    st.info(
+                        "Upload a station CSV to inspect "
+                        "the station locations."
+                    )
+if analysis_result is not None:
                             st.divider()
 
                             st.header(
@@ -1010,120 +1354,3 @@ else:
                                         use_container_width=True,
                                         hide_index=True,
                                     )
-
-                except Exception as error:
-                    course_aoi = None
-                    heatmap_aoi = None
-                    aoi_area_km2 = None
-                    settings_valid = False
-
-                    st.error(
-                        "RaceGuard could not prepare the "
-                        f"temperature request area: {error}"
-                    )
-
-                st.caption(
-                    "No paid FortyGuard request has been made."
-                )
-
-    with preview_column:
-        st.subheader("Input preview")
-
-        if course is None:
-            st.info(
-                "Upload a valid course to display its preview."
-            )
-
-        else:
-            course_tab, station_tab = st.tabs(
-                [
-                    "Course map",
-                    "Station data",
-                ]
-            )
-
-            with course_tab:
-                course_map = build_course_preview_map(
-                    course,
-                    positioned_stations,
-                    aoi = course_aoi
-                )
-
-                st_folium(
-                    course_map,
-                    use_container_width=True,
-                    height=520,
-                )
-
-            with station_tab:
-                if positioned_stations is not None:
-                    display_stations = (
-                        positioned_stations.copy()
-                    )
-
-                    display_stations[
-                        "baseline_distance_km"
-                    ] = display_stations[
-                        "baseline_distance_km"
-                    ].round(2)
-
-                    display_stations[
-                        "latitude"
-                    ] = display_stations[
-                        "latitude"
-                    ].round(6)
-
-                    display_stations[
-                        "longitude"
-                    ] = display_stations[
-                        "longitude"
-                    ].round(6)
-
-                    display_stations[
-                        "source_coordinate_offset_m"
-                    ] = display_stations[
-                        "source_coordinate_offset_m"
-                    ].round(1)
-
-                    summary_columns = [
-                        "station_id",
-                        "baseline_distance_km",
-                        "latitude",
-                        "longitude",
-                        "source_coordinate_offset_m",
-                    ]
-
-                    optional_columns = [
-                        column
-                        for column in [
-                            "has_water",
-                            "has_restrooms",
-                            "has_first_aid",
-                        ]
-                        if column
-                        in display_stations.columns
-                    ]
-
-                    st.dataframe(
-                        display_stations[
-                            summary_columns
-                            + optional_columns
-                        ],
-                        use_container_width=True,
-                        hide_index=True,
-                    )
-
-                    with st.expander(
-                        "View technical station data"
-                    ):
-                        st.dataframe(
-                            positioned_stations,
-                            use_container_width=True,
-                            hide_index=True,
-                        )
-
-                else:
-                    st.info(
-                        "Upload a station CSV to inspect "
-                        "the station locations."
-                    )
