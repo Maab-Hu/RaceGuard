@@ -203,7 +203,7 @@ if mode == "Explore an example":
                         example_course,
                         example_heatmap_path,
                         spacing_m=100,
-                        max_nearest_distance_m=50,
+                        max_nearest_distance_m=150,
                     )
                 )
 
