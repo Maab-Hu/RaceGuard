@@ -1197,6 +1197,12 @@ if analysis_result is not None:
                                 - baseline_segment_distance_km
                             )
 
+                            segment_delta_color = (
+                                "inverse"
+                                if segment_distance_change_km < 0
+                                else "off"
+                            )
+
                             (
                                 exposure_metric,
                                 segment_metric,
@@ -1214,12 +1220,12 @@ if analysis_result is not None:
 
                             with segment_metric:
                                 st.metric(
-                                    "Worst Exposure Segment",
+                                    "Worst-exposure segment",
                                     f"{optimized_segment_distance_km:.2f} km",
                                     delta=(
-                                        f"{segment_distance_change_km:+.2f} km"
+                                        f"{segment_distance_change_km:+.2f} km vs current"
                                     ),
-                                    delta_color="inverse",
+                                    delta_color=segment_delta_color,
                                 )
 
                             with movement_metric:
