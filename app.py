@@ -1214,7 +1214,7 @@ if analysis_result is not None:
 
                             with segment_metric:
                                 st.metric(
-                                    "Worst segment length",
+                                    "Worst Exposure Segment",
                                     f"{optimized_segment_distance_km:.2f} km",
                                     delta=(
                                         f"{segment_distance_change_km:+.2f} km"
@@ -1224,7 +1224,7 @@ if analysis_result is not None:
 
                             with movement_metric:
                                 st.metric(
-                                    "Largest station relocation",
+                                    "Largest station move",
                                     (
                                         f"{summary['maximum_station_movement_m']:.0f} m"
                                     ),
@@ -1232,7 +1232,7 @@ if analysis_result is not None:
 
                             with total_movement_metric:
                                 st.metric(
-                                    "Total station relocation",
+                                    "Combined station movement",
                                     (
                                         f"{summary['total_station_movement_m'] / 1000:.2f} km"
                                     ),
