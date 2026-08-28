@@ -218,4 +218,4 @@ RaceGuard is a planning and decision-support prototype.
 
 RaceGuard was developed for the **FortyGuard Hackathon '26** to demonstrate how hyperlocal temperature intelligence can inform practical, measurable heat-resilience decisions.
 
-AI-assisted development tools were used for guided architecture discussion, debugging, interface refinement, and documentation. The application logic, validation workflow, optimization design, and case-study analysis were implemented and tested as part of the project.
+AI-assisted development tools were used for debugging, interface refinement, and documentation.
