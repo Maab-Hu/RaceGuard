@@ -999,7 +999,7 @@ else:
                                             course,
                                             heatmap_response,
                                             spacing_m=100,
-                                            max_nearest_distance_m=50,
+                                            max_nearest_distance_m=150,
                                         )
                                     )
 
